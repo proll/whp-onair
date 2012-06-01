@@ -1,0 +1,125 @@
+<html>
+<head>
+	<meta charset="UTF-8"/>
+	<title>Piccsy masonry</title>
+	<meta name="description" content="">
+	<link rel="author" href="/humans.txt">
+
+	<meta name="HandheldFriendly" content="True" />
+	<meta name="MobileOptimized" content="320" />
+	<meta http-equiv="clear type" content="on">
+	<link rel="alternate" media="handheld" href="" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+
+	<meta name="apple-mobile-web-app-capable" content="yes"/>
+	<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+
+
+	<meta name="format-detection" content="telephone=no"/>
+	<meta name="format-detection" content="address=no"/>  
+	<link rel="canonical">
+	<link href="css/style.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+<div id="container" class="transitions-enabled clearfix">
+</div> <!-- #container -->
+
+<script src="js/jquery-1.7.1.min.js"></script>
+<script src="jquery.masonry.min.js"></script>
+<script>
+POST_COLLECTION = [];
+
+(function(){
+	var $container = $('#container'),
+		t;
+	$container.imagesLoaded(
+		function(){
+		$container.masonry({
+			itemSelector: '.box',
+			isFitWidth: true,
+
+			isAnimated: true
+		});
+	});
+
+	var repeater = function(){
+	$.getJSON(
+		'gate.php', 
+		function(data) {
+
+			var	post,
+				id,
+				desc,
+				href,
+				domStr = "";
+			// запускаем обновление через несколько секунд
+			t = setTimeout(repeater, 8000);
+			if(!!data){
+			if(!!data.piccsy){
+
+				for (var i = data.piccsy.columns.length - 1; i >= 0; i--) {
+					for (var j = data.piccsy.columns[i].posts.length - 1; j >= 0; j--) {
+						post = data.piccsy.columns[i].posts[j];
+						id = post.id;
+						href = "";
+						// если новая картинка
+						if(POST_COLLECTION.indexOf(id)==-1){
+							if(!!post.src_url) href = $.trim(post.src_url);
+							if (href == "" && !!post.permalink) {
+								href = "http://piccsy.com/" + $.trim(post.permalink);
+							}
+							desc = !!post.description ? "<span>"+post.description+"</span>": "";
+							console.log()
+							if(href != ""){
+								domStr = 	'<div id="p'+id+'" class="box">'
+											+'<a href="'+href+'" target="_blank">'
+											+'<img src = "'+post.thumb+'" width="240"/>'
+											+'</a>'
+											+ desc
+											+'</div>'
+											+ domStr;
+							}else{
+								domStr = 	'<div id="p'+id+'" class="box">'
+											+'<img src = "'+post.thumb+'" width="240"/>'
+											+ desc
+											+'</div>'
+											+ domStr;
+							}
+							POST_COLLECTION.push(id);
+						}
+					};
+				};
+
+				if(domStr != ""){
+					$container.prepend( domStr ).imagesLoaded(function(){$container.masonry( 'reload' )});
+				}else{
+					// если ничего не добавляем просто пытаемся перестроить все - иногда бывают глюки
+					$container.masonry( 'reload' );
+				}
+
+				// если ооочень много постов при каждом обновлении страницы удаляем по одному
+				if(POST_COLLECTION.length > 200) {
+					id = POST_COLLECTION.shift();
+					id = "p"+ id;
+					$("#"+id, $container).remove();
+					// console.log(id);
+				}
+
+			}
+			}
+		}
+	);
+}
+
+repeater();
+
+})();
+
+</script>
+</body>
+</html>
+
+
+
