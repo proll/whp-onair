@@ -44,55 +44,41 @@ POST_COLLECTION = [];
 		});
 	});
 
-	var repeater = function(){
-	$.getJSON(
-		'gate.php', 
-		function(data) {
 
-			var	post,
-				id,
-				desc,
+	var offset = 0,
+		limit = 50,
+		max_timestamp = 0;
+	var repeater = function(){
+		max_timestamp = Math.round((new Date()).getTime()/1000);
+	$.getJSON( 'gate.php?method=/api/photos/&sort=date&limit='+limit+'&max_timestamp='+max_timestamp, 
+		function(data) {
+			var desc,
 				href,
 				domStr = "";
 			// запускаем обновление через несколько секунд
 			t = setTimeout(repeater, 8000);
-			if(!!data){
-			if(!!data.piccsy){
+			if(!!data.photos.list){
 
-				for (var i = data.piccsy.columns.length - 1; i >= 0; i--) {
-					for (var j = data.piccsy.columns[i].posts.length - 1; j >= 0; j--) {
-						post = data.piccsy.columns[i].posts[j];
-						id = post.id;
-						href = "";
+				for (var i = 0; i<data.photos.list.length - 1; i++) {
+						var photo = data.photos.list[i],
+							id = photo.id,
+							href = "";
 						// если новая картинка
 						if(POST_COLLECTION.indexOf(id)==-1){
-							if(!!post.src_url) href = $.trim(post.src_url);
-							if (href == "" && !!post.permalink) {
-								href = "http://piccsy.com/" + $.trim(post.permalink);
-							}
-							desc = !!post.description ? "<span>"+post.description+"</span>": "";
-							console.log()
-							if(href != ""){
-								domStr = 	'<div id="p'+id+'" class="box">'
+							href = photo.site_url;
+							desc = !!photo.caption ? "<span>"+photo.caption+"</span>": "";
+
+								domStr += 	'<div id="p'+id+'" class="box">'
 											+'<a href="'+href+'" target="_blank">'
-											+'<img src = "'+post.thumb+'" width="240"/>'
+											+'<img src = "'+photo.i106x106+'" width="106"/>'
 											+'</a>'
 											+ desc
 											+'</div>'
-											+ domStr;
-							}else{
-								domStr = 	'<div id="p'+id+'" class="box">'
-											+'<img src = "'+post.thumb+'" width="240"/>'
-											+ desc
-											+'</div>'
-											+ domStr;
-							}
 							POST_COLLECTION.push(id);
 						}
-					};
 				};
 
-				if(domStr != ""){
+				if(domStr != "") {
 					$container.prepend( domStr ).imagesLoaded(function(){$container.masonry( 'reload' )});
 				}else{
 					// если ничего не добавляем просто пытаемся перестроить все - иногда бывают глюки
@@ -108,9 +94,7 @@ POST_COLLECTION = [];
 				}
 
 			}
-			}
-		}
-	);
+		});
 }
 
 repeater();
