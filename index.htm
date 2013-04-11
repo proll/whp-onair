@@ -39,8 +39,7 @@ POST_COLLECTION = [];
 		$container.masonry({
 			itemSelector: '.box',
 			isFitWidth: true,
-
-			isAnimated: true
+			isAnimated: false
 		});
 	});
 
@@ -49,7 +48,9 @@ POST_COLLECTION = [];
 		limit = 50,
 		max_timestamp = 0;
 	var repeater = function(){
-		max_timestamp = Math.round((new Date()).getTime()/1000);
+		max_timestamp = Math.round((new Date()).getTime()/1000),
+		// image_arr = ['i106x106', 'i160x160', 'i212x212', 'i320x320'];
+		image_arr = ['i106x106'];
 	$.getJSON( 'gate.php?method=/api/photos/&sort=date&limit='+limit+'&max_timestamp='+max_timestamp, 
 		function(data) {
 			var desc,
@@ -68,9 +69,12 @@ POST_COLLECTION = [];
 							href = photo.site_url;
 							desc = !!photo.caption ? "<span>"+photo.caption+"</span>": "";
 
+
+							var img = photo[image_arr[Math.round(Math.random()*(image_arr.length - 1))]];
+							
 								domStr += 	'<div id="p'+id+'" class="box">'
 											+'<a href="'+href+'" target="_blank">'
-											+'<img src = "'+photo.i106x106+'" width="106"/>'
+											+'<img src = "'+ img +'" width="106"/>'
 											+'</a>'
 											+ desc
 											+'</div>'
